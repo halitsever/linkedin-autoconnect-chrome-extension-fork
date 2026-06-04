@@ -16,7 +16,7 @@ Tired of manually clicking 'Connect' on LinkedIn? This extension does it for you
 </p>
 
 <p align="center">
-<img src=".github/screenshots/ss-01.png" alt="Linkedin AutoConnect"/>
+<img height="300" src=".github/screenshots/ss-01.png" alt="Linkedin AutoConnect"/>
 </p>
 
 <p align="center" >
