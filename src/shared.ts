@@ -59,6 +59,14 @@ export async function loadOptions() {
   emitMaximumAutoConnectionsPerSessionChanged(maximumAutoConnectionsPerSession);
 }
 
+export function watchOptions() {
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.maximumAutoConnectionsPerSession) {
+      emitMaximumAutoConnectionsPerSessionChanged(changes.maximumAutoConnectionsPerSession.newValue);
+    }
+  });
+}
+
 export function postChromePortMessage(chromePortMessage: ChromePortMessage) {
   const { message, port } = chromePortMessage;
   port.postMessage(message);

@@ -14,6 +14,7 @@ import {
   onChromePortMessageReceived,
   postChromePortMessage,
   startListeningToChromePortMessages,
+  watchOptions,
 } from "./shared";
 
 const maximumAttemptsForFindingHtmlElements = 5;
@@ -220,7 +221,13 @@ function searchForConnectButtonIfRunning() {
     startListeningToChromePortMessages(port);
   });
 
-  onNextAvailableConnectButtonFound(clickConnectButton);
+  onNextAvailableConnectButtonFound((button) => {
+    if (getButtonClicksCount() < Number(getMaximumAutoConnectionsPerSession())) {
+      clickConnectButton(button);
+    } else {
+      emitStopped();
+    }
+  });
 
   onNextAvailableConnectButtonNotFound(goToNextPage);
 
@@ -235,6 +242,7 @@ function searchForConnectButtonIfRunning() {
   });
 
   await loadOptions();
+  watchOptions();
 
   startListeningToChromePortConnections();
 
