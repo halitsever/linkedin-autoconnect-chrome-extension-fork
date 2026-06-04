@@ -3,6 +3,8 @@
 </br>
 <img src="https://halitsever-api.vercel.app/api/repo-title?title=Linkedin+AutoConnect">
 
+> **heads up** — personally i don't recommend using this, not even a little bit. linkedin will most likely flag your account for spam and restrict it. you've been warned, proceed at your own risk ngl
+
 <p align="center">
 Tired of manually clicking 'Connect' on LinkedIn? This extension does it for you automatically.<br>
 <br/>
