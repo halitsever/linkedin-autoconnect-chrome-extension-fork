@@ -118,7 +118,8 @@ function findNextAvailableConnectButton(selector: LinkedInCssSelector) {
 }
 
 function goToNextPage() {
-  queryWithShadow<HTMLButtonElement>(LinkedInCssSelector.NextPageButton)?.click();
+  const nextButton = queryWithShadow<HTMLButtonElement>(LinkedInCssSelector.NextPageButton);
+  if (nextButton) focusAndClickElement(nextButton);
 }
 
 function startListeningToChromePortConnections() {
@@ -156,7 +157,14 @@ function searchForConnectButtonIfRunning() {
 
   onStopped(() => emitIsRunning(false));
 
-  onUnidentifiedPageLoaded(() => emitIsRunning(false));
+  onUnidentifiedPageLoaded(() => {
+    setTimeout(() => {
+      const loc = window.location.href;
+      const isStillUnidentified =
+        !loc.includes(LinkedInUrl.PatternOfSearchPage) && !loc.includes(LinkedInUrl.PatternOfMyNetworkPage);
+      if (isStillUnidentified) emitIsRunning(false);
+    }, 2000);
+  });
 
   onConnectButtonClicked(async () => {
     emitButtonClicksCount(getButtonClicksCount() + 1);
