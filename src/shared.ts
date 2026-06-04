@@ -18,11 +18,11 @@ export interface ChromePortMessage {
 }
 
 export enum LinkedInCssSelector {
-  NextPageButton = "button.artdeco-pagination__button--next",
-  ConnectButtonFromMyNetworkPage = "div.discover-entity-type-card__bottom-container button.ember-view:enabled:not(.artdeco-button--muted):not(.artdeco-button--full)",
-  ConnectButtonFromSearchPage = "div.search-results-container button.ember-view:enabled:not(.artdeco-button--muted)",
-  SendButtonFromSendInviteModal = "div.send-invite button.artdeco-button--primary",
-  SendInMailsModalDismissButton = "#artdeco-modal-outlet .artdeco-modal__dismiss",
+  NextPageButton = "button[data-testid='pagination-controls-next-button-visible']",
+  ConnectButtonFromMyNetworkPage = "button:has(svg[id='connect-small']):not([data-autoconnect-clicked])",
+  ConnectButtonFromSearchPage = "a[href*='/preload/search-custom-invite/']:not([data-autoconnect-clicked])",
+  SendButtonFromSendInviteModal = "div.artdeco-modal__actionbar button.artdeco-button--primary",
+  SendInMailsModalDismissButton = "#artdeco-modal-outlet .artdeco-modal__dismiss:not([data-test-modal-close-btn])",
   CloseSendInMailsModalButton = '.msg-overlay-bubble-header__control .artdeco-button__icon[data-test-icon="close-small"]',
 }
 

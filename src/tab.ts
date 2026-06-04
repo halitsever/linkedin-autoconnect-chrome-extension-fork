@@ -21,7 +21,7 @@ const minimumDelayBetweenConnectClicks = 1500;
 const maximumDelayBetweenConnectClicks = 3000;
 const oneSecondIntervalInMilliseconds = 1000;
 const halfSecondIntervalInMilliseconds = 500;
-const [emitNextAvailableConnectButtonFound, onNextAvailableConnectButtonFound] = createPubSub<HTMLButtonElement>();
+const [emitNextAvailableConnectButtonFound, onNextAvailableConnectButtonFound] = createPubSub<HTMLElement>();
 const [emitNextAvailableConnectButtonNotFound, onNextAvailableConnectButtonNotFound] = createPubSub();
 const [emitConnectButtonClicked, onConnectButtonClicked] = createPubSub();
 const [emitOneSecondIntervalTicked, onOneSecondIntervalTicked] = createPubSub();
@@ -40,47 +40,60 @@ function focusAndClickElement(element: HTMLElement) {
   element.click();
 }
 
-function clickConnectButton(button: HTMLButtonElement) {
+function queryWithShadow<T extends HTMLElement>(selector: string, root: Document | ShadowRoot = document): T | null {
+  const direct = root.querySelector<T>(selector);
+  if (direct) return direct;
+
+  for (const host of Array.from(root.querySelectorAll("*"))) {
+    if (host.shadowRoot) {
+      const found = queryWithShadow<T>(selector, host.shadowRoot);
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
+
+function clickConnectButton(button: HTMLElement) {
   focusAndClickElement(button);
-  button.setAttribute("disabled", "disabled");
+  button.setAttribute("data-autoconnect-clicked", "true");
   emitConnectButtonClicked();
 }
 
 function confirmSendInviteModal() {
-  return new Promise((resolve) => {
+  const maxModalAttempts = 20;
+
+  return new Promise<void>((resolve) => {
     let attempts = 0;
 
     const interval = setInterval(() => {
-      const closeSendInMailsModalButton = document.querySelector(
-        LinkedInCssSelector.CloseSendInMailsModalButton
-      )?.parentElement;
+      const sendButton = queryWithShadow<HTMLButtonElement>(LinkedInCssSelector.SendButtonFromSendInviteModal);
+      if (sendButton) {
+        focusAndClickElement(sendButton);
+        clearInterval(interval);
+        resolve();
+        return;
+      }
 
+      const closeSendInMailsModalButton = queryWithShadow(LinkedInCssSelector.CloseSendInMailsModalButton)?.parentElement;
       if (closeSendInMailsModalButton) {
         focusAndClickElement(closeSendInMailsModalButton);
       }
 
-      const sendInMailsModalDismissButton = document.querySelector<HTMLButtonElement>(
+      const sendInMailsModalDismissButton = queryWithShadow<HTMLButtonElement>(
         LinkedInCssSelector.SendInMailsModalDismissButton
       );
-
       if (sendInMailsModalDismissButton) {
         focusAndClickElement(sendInMailsModalDismissButton);
       }
 
-      const sendButton = document.querySelector<HTMLButtonElement>(LinkedInCssSelector.SendButtonFromSendInviteModal);
-
-      if (sendButton) {
-        focusAndClickElement(sendButton);
-      }
-
       if (
-        sendButton ||
-        sendInMailsModalDismissButton ||
         closeSendInMailsModalButton ||
-        ++attempts > maximumAttemptsForFindingHtmlElements
+        sendInMailsModalDismissButton ||
+        ++attempts > maxModalAttempts
       ) {
         clearInterval(interval);
-        resolve(null);
+        resolve();
       }
     }, halfSecondIntervalInMilliseconds);
   });
@@ -92,7 +105,7 @@ function findNextAvailableConnectButton(selector: LinkedInCssSelector) {
   const interval = setInterval(() => {
     window.scrollTo(0, document.body.scrollHeight);
 
-    const nextAvailableConnectButton = document.querySelector<HTMLButtonElement>(selector);
+    const nextAvailableConnectButton = queryWithShadow<HTMLElement>(selector);
 
     if (nextAvailableConnectButton) {
       clearInterval(interval);
@@ -105,7 +118,7 @@ function findNextAvailableConnectButton(selector: LinkedInCssSelector) {
 }
 
 function goToNextPage() {
-  document.querySelector<HTMLButtonElement>(LinkedInCssSelector.NextPageButton)?.click();
+  queryWithShadow<HTMLButtonElement>(LinkedInCssSelector.NextPageButton)?.click();
 }
 
 function startListeningToChromePortConnections() {
@@ -147,7 +160,7 @@ function searchForConnectButtonIfRunning() {
 
   onConnectButtonClicked(async () => {
     emitButtonClicksCount(getButtonClicksCount() + 1);
-    confirmSendInviteModal();
+    await confirmSendInviteModal();
     await delay(randomInt(minimumDelayBetweenConnectClicks, maximumDelayBetweenConnectClicks));
     if (getIsRunning()) {
       if (getButtonClicksCount() >= Number(getMaximumAutoConnectionsPerSession())) {
